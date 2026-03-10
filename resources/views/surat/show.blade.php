@@ -1,0 +1,185 @@
+<x-app-layout>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
+.app-layout { display: flex; min-height: calc(100vh - 100px); margin-top: -40px; margin-left: -25px; margin-right: -25px; }
+.sidebar { width: 240px; background: #fff; border-right: 1px solid #edf0f7; padding: 28px 16px; min-height: 100%; flex-shrink: 0; }
+.sidebar-logo { font-size: 18px; font-weight: 700; color: #5a67d8; text-decoration: none; display: flex; align-items: center; gap: 8px; margin-bottom: 32px; }
+.sidebar-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #aab; margin-bottom: 10px; padding-left: 8px; }
+.sidebar-nav { list-style: none; padding: 0; margin: 0 0 24px 0; }
+.sidebar-nav li { margin-bottom: 2px; }
+.sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 500; color: #555; transition: all .15s; }
+.sidebar-nav a:hover { background: #f0f0fb; color: #5a67d8; }
+.sidebar-nav a.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+.sidebar-divider { border: none; border-top: 1px solid #edf0f7; margin: 12px 0 16px 0; }
+.logout-link { color: #e05252 !important; }
+.main-content { flex: 1; padding: 28px 28px 28px 24px; min-width: 0; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.back-link { display: inline-flex; align-items: center; gap: 7px; color: #667eea; text-decoration: none; font-size: 13px; font-weight: 600; }
+.back-link:hover { text-decoration: underline; }
+.action-btns { display: flex; gap: 8px; }
+.btn-edit-top { background: #eef0ff; color: #667eea; padding: 8px 18px; border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; transition: background .1s; }
+.btn-edit-top:hover { background: #dde2ff; }
+.btn-delete-top { background: #fff0f0; color: #e53e3e; border: none; padding: 8px 18px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.btn-delete-top:hover { background: #ffe0e0; }
+
+/* Detail Card */
+.detail-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,.06); }
+
+/* Card header banner */
+.detail-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 28px 32px; color: white; position: relative; overflow: hidden; }
+.detail-header::before { content: ''; position: absolute; right: -30px; top: -30px; width: 140px; height: 140px; background: rgba(255,255,255,.08); border-radius: 50%; }
+.detail-header-inner { position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 18px; }
+.doc-icon { width: 54px; height: 54px; border-radius: 14px; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 22px; }
+.detail-header .jenis-label { font-size: 11px; font-weight: 700; opacity: .75; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+.detail-header h2 { margin: 0 0 6px 0; font-size: 20px; font-weight: 800; }
+.detail-header .nomor { font-size: 13px; opacity: .85; }
+.status-badge { display: inline-flex; align-items: center; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 800; white-space: nowrap; margin-left: auto; flex-shrink: 0; }
+
+/* Detail body */
+.detail-body { padding: 28px 32px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.detail-field { background: #fafbff; border-radius: 12px; padding: 14px 18px; }
+.detail-field.full { grid-column: span 2; }
+.field-label { font-size: 10px; font-weight: 700; color: #aab; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.field-value { font-size: 14px; font-weight: 700; color: #333; }
+.file-attachment { background: #eef0ff; border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+.file-attachment-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0; }
+.btn-download { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 9px 20px; border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+
+.timestamps { margin-top: 18px; padding-top: 14px; border-top: 1px solid #f0f2f7; display: flex; gap: 20px; }
+.timestamps span { font-size: 11px; color: #ccc; display: flex; align-items: center; gap: 5px; }
+</style>
+
+<div class="app-layout">
+    <div class="sidebar">
+        <a href="{{ route('dashboard') }}" class="sidebar-logo">
+            <i class="fas fa-graduation-cap"></i> Pengasuhan
+        </a>
+        <p class="sidebar-section-title">Overview</p>
+        <ul class="sidebar-nav">
+            <li><a href="{{ route('dashboard') }}"><i class="fas fa-th-large" style="width:16px;"></i> Dashboard</a></li>
+            <li><a href="{{ route('surat.index') }}" class="active"><i class="fas fa-envelope-open-text" style="width:16px;"></i> Administrasi Surat</a></li>
+            <li><a href="{{ route('acara.index') }}"><i class="fas fa-calendar-alt" style="width:16px;"></i> Acara</a></li>
+            <li><a href="{{ route('poin.index') }}"><i class="fas fa-star" style="width:16px;"></i> POIN</a></li>
+            <li><a href="{{ route('mahasiswa.index') }}"><i class="fas fa-users" style="width:16px;"></i> Database Mahasiswa</a></li>
+        </ul>
+        <hr class="sidebar-divider">
+        <p class="sidebar-section-title">Pengaturan</p>
+        <ul class="sidebar-nav">
+            <li><a href="{{ route('setting.index') }}"><i class="fas fa-cog" style="width:16px;"></i> Setting</a></li>
+            <li>
+                <a href="{{ route('logout') }}" class="logout-link"
+                   onclick="event.preventDefault(); document.getElementById('logout-form-ss').submit();">
+                    <i class="fas fa-sign-out-alt" style="width:16px;"></i> Logout
+                </a>
+                <form id="logout-form-ss" action="{{ route('logout') }}" method="POST" style="display:none;">@csrf</form>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <!-- Top bar -->
+        <div class="topbar">
+            <a href="{{ route('surat.index') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Kembali ke Daftar Surat
+            </a>
+            <div class="action-btns">
+                <a href="{{ route('surat.edit', $surat->id) }}" class="btn-edit-top">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <form method="POST" action="{{ route('surat.destroy', $surat->id) }}"
+                      onsubmit="return confirm('Hapus surat ini secara permanen?');">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn-delete-top">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Detail Card -->
+        <div class="detail-card">
+            <!-- Banner Header -->
+            <div class="detail-header">
+                <div class="detail-header-inner">
+                    <div class="doc-icon"><i class="fas fa-file-alt"></i></div>
+                    <div style="flex:1;">
+                        <div class="jenis-label">{{ $surat->jenis_surat }}</div>
+                        <h2>{{ $surat->perihal }}</h2>
+                        @if($surat->nomor_surat)
+                        <div class="nomor">No. {{ $surat->nomor_surat }}</div>
+                        @endif
+                    </div>
+                    <span class="status-badge"
+                          style="background:{{ $surat->status_bg_color }}; color:{{ $surat->status_badge_color }};">
+                        {{ $surat->status }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Detail Body -->
+            <div class="detail-body">
+                <div class="detail-grid">
+                    <div class="detail-field">
+                        <div class="field-label"><i class="fas fa-paper-plane"></i> Pengirim</div>
+                        <div class="field-value">{{ $surat->pengirim }}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label"><i class="fas fa-inbox"></i> Penerima</div>
+                        <div class="field-value">{{ $surat->penerima }}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label"><i class="fas fa-calendar"></i> Tanggal Surat</div>
+                        <div class="field-value">{{ \Carbon\Carbon::parse($surat->tanggal_surat)->locale('id')->isoFormat('dddd, D MMMM Y') }}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label"><i class="fas fa-calendar-check"></i> Tanggal Diterima</div>
+                        <div class="field-value">
+                            @if($surat->tanggal_terima)
+                                {{ \Carbon\Carbon::parse($surat->tanggal_terima)->locale('id')->isoFormat('dddd, D MMMM Y') }}
+                            @else
+                                <span style="color:#ccc; font-weight:400;">—</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if($surat->keterangan)
+                    <div class="detail-field full">
+                        <div class="field-label"><i class="fas fa-sticky-note"></i> Keterangan</div>
+                        <div class="field-value" style="font-weight:400; font-size:13px; line-height:1.6; color:#555;">{{ $surat->keterangan }}</div>
+                    </div>
+                    @endif
+
+                    @if($surat->file_path)
+                    <div class="detail-field full" style="background:#eef0ff; border-radius:12px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div class="file-attachment-icon">
+                                    <i class="fas fa-paperclip" style="color:white; font-size:16px;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size:13px; font-weight:700; color:#333;">Dokumen Terlampir</div>
+                                    <div style="font-size:12px; color:#667eea;">{{ basename($surat->file_path) }}</div>
+                                </div>
+                            </div>
+                            <a href="{{ Storage::url($surat->file_path) }}" target="_blank" class="btn-download">
+                                <i class="fas fa-download"></i> Download / Lihat
+                            </a>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+
+                <!-- Timestamps -->
+                <div class="timestamps">
+                    <span><i class="fas fa-clock"></i> Dibuat: {{ $surat->created_at->locale('id')->isoFormat('D MMM Y, HH:mm') }}</span>
+                    <span><i class="fas fa-sync"></i> Diperbarui: {{ $surat->updated_at->locale('id')->isoFormat('D MMM Y, HH:mm') }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</x-app-layout>

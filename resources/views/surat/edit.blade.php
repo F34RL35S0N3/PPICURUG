@@ -1,0 +1,176 @@
+<x-app-layout>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
+.app-layout { display: flex; min-height: calc(100vh - 100px); margin-top: -40px; margin-left: -25px; margin-right: -25px; }
+.sidebar { width: 240px; background: #fff; border-right: 1px solid #edf0f7; padding: 28px 16px; min-height: 100%; flex-shrink: 0; }
+.sidebar-logo { font-size: 18px; font-weight: 700; color: #5a67d8; text-decoration: none; display: flex; align-items: center; gap: 8px; margin-bottom: 32px; }
+.sidebar-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #aab; margin-bottom: 10px; padding-left: 8px; }
+.sidebar-nav { list-style: none; padding: 0; margin: 0 0 24px 0; }
+.sidebar-nav li { margin-bottom: 2px; }
+.sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 500; color: #555; transition: all .15s; }
+.sidebar-nav a:hover { background: #f0f0fb; color: #5a67d8; }
+.sidebar-nav a.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+.sidebar-divider { border: none; border-top: 1px solid #edf0f7; margin: 12px 0 16px 0; }
+.logout-link { color: #e05252 !important; }
+.main-content { flex: 1; padding: 28px 28px 28px 24px; min-width: 0; max-width: 860px; }
+
+.back-link { display: inline-flex; align-items: center; gap: 7px; color: #667eea; text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+.back-link:hover { text-decoration: underline; }
+
+.page-header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 18px; padding: 28px 32px; color: white; margin-bottom: 24px; position: relative; overflow: hidden; }
+.page-header::before { content: ''; position: absolute; right: -50px; top: -50px; width: 180px; height: 180px; background: rgba(255,255,255,.08); border-radius: 50%; }
+.page-header h1 { margin: 0 0 4px 0; font-size: 22px; font-weight: 800; position: relative; z-index: 1; }
+.page-header p { margin: 0; opacity: .85; font-size: 13px; position: relative; z-index: 1; }
+
+.card { background: white; border-radius: 16px; padding: 28px 32px; box-shadow: 0 2px 16px rgba(0,0,0,.06); }
+
+.error-box { background: #fff0f0; border: 1px solid #fc8181; border-radius: 10px; padding: 14px 18px; margin-bottom: 22px; }
+.error-box p { margin: 0 0 8px 0; color: #e53e3e; font-weight: 700; font-size: 13px; }
+.error-box ul { margin: 0; padding-left: 18px; color: #e53e3e; font-size: 13px; }
+
+.section-divider { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #aab; padding-bottom: 10px; border-bottom: 1px solid #f0f2f7; margin: 0 0 20px 0; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.form-group.full { grid-column: span 2; }
+.form-label { display: block; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 7px; text-transform: uppercase; letter-spacing: .04em; }
+.req { color: #e53e3e; }
+.opt { color: #aab; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.form-control { width: 100%; padding: 11px 14px; border: 2px solid #edf0f7; border-radius: 10px; font-size: 13px; font-family: 'Inter', sans-serif; color: #333; background: #fafbff; outline: none; transition: border .15s; }
+.form-control:focus { border-color: #f093fb; background: white; }
+select.form-control { cursor: pointer; }
+textarea.form-control { resize: vertical; min-height: 90px; }
+.file-input { width: 100%; padding: 9px 14px; border: 2px dashed #c5c8e0; border-radius: 10px; font-size: 13px; font-family: 'Inter', sans-serif; background: #fafbff; cursor: pointer; outline: none; }
+.file-info { background: #eef0ff; border-radius: 8px; padding: 9px 14px; margin-bottom: 8px; font-size: 12px; color: #667eea; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.file-info a { color: #764ba2; margin-left: auto; font-weight: 700; text-decoration: none; }
+
+.btn-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; padding-top: 20px; border-top: 1px solid #f0f2f7; }
+.btn-submit { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(245,87,108,.4); transition: opacity .15s; }
+.btn-submit:hover { opacity: .9; }
+.btn-cancel { background: #f4f5f9; color: #666; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; border: 2px solid #edf0f7; transition: border .15s; }
+.btn-cancel:hover { border-color: #f5576c; color: #f5576c; }
+</style>
+
+<div class="app-layout">
+    <div class="sidebar">
+        <a href="{{ route('dashboard') }}" class="sidebar-logo">
+            <i class="fas fa-graduation-cap"></i> Pengasuhan
+        </a>
+        <p class="sidebar-section-title">Overview</p>
+        <ul class="sidebar-nav">
+            <li><a href="{{ route('dashboard') }}"><i class="fas fa-th-large" style="width:16px;"></i> Dashboard</a></li>
+            <li><a href="{{ route('surat.index') }}" class="active"><i class="fas fa-envelope-open-text" style="width:16px;"></i> Administrasi Surat</a></li>
+            <li><a href="{{ route('acara.index') }}"><i class="fas fa-calendar-alt" style="width:16px;"></i> Acara</a></li>
+            <li><a href="{{ route('poin.index') }}"><i class="fas fa-star" style="width:16px;"></i> POIN</a></li>
+            <li><a href="{{ route('mahasiswa.index') }}"><i class="fas fa-users" style="width:16px;"></i> Database Mahasiswa</a></li>
+        </ul>
+        <hr class="sidebar-divider">
+        <p class="sidebar-section-title">Pengaturan</p>
+        <ul class="sidebar-nav">
+            <li><a href="{{ route('setting.index') }}"><i class="fas fa-cog" style="width:16px;"></i> Setting</a></li>
+            <li>
+                <a href="{{ route('logout') }}" class="logout-link"
+                   onclick="event.preventDefault(); document.getElementById('logout-form-se').submit();">
+                    <i class="fas fa-sign-out-alt" style="width:16px;"></i> Logout
+                </a>
+                <form id="logout-form-se" action="{{ route('logout') }}" method="POST" style="display:none;">@csrf</form>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <a href="{{ route('surat.index') }}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Kembali ke Daftar Surat
+        </a>
+
+        <div class="page-header">
+            <h1><i class="fas fa-edit" style="margin-right:10px;"></i>Edit Surat</h1>
+            <p>Perbarui data surat: <strong>{{ Str::limit($surat->perihal, 60) }}</strong></p>
+        </div>
+
+        <div class="card">
+            @if($errors->any())
+            <div class="error-box">
+                <p><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>Terdapat kesalahan:</p>
+                <ul>@foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach</ul>
+            </div>
+            @endif
+
+            <form method="POST" action="{{ route('surat.update', $surat->id) }}" enctype="multipart/form-data">
+                @csrf @method('PUT')
+
+                <div class="section-divider">Informasi Surat</div>
+                <div class="form-grid" style="margin-bottom:18px;">
+                    <div class="form-group">
+                        <label class="form-label">Nomor Surat <span class="opt">(opsional)</span></label>
+                        <input type="text" name="nomor_surat" value="{{ old('nomor_surat', $surat->nomor_surat) }}"
+                               placeholder="Contoh: 001/PPI/III/2026" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Jenis Surat <span class="req">*</span></label>
+                        <select name="jenis_surat" required class="form-control">
+                            @foreach($jenisList as $j)
+                                <option value="{{ $j }}" {{ old('jenis_surat', $surat->jenis_surat) === $j ? 'selected' : '' }}>{{ $j }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Perihal <span class="req">*</span></label>
+                        <input type="text" name="perihal" value="{{ old('perihal', $surat->perihal) }}" required
+                               placeholder="Tuliskan perihal surat..." class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pengirim <span class="req">*</span></label>
+                        <input type="text" name="pengirim" value="{{ old('pengirim', $surat->pengirim) }}" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Penerima <span class="req">*</span></label>
+                        <input type="text" name="penerima" value="{{ old('penerima', $surat->penerima) }}" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Surat <span class="req">*</span></label>
+                        <input type="date" name="tanggal_surat" value="{{ old('tanggal_surat', $surat->tanggal_surat->format('Y-m-d')) }}" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Diterima <span class="opt">(opsional)</span></label>
+                        <input type="date" name="tanggal_terima" value="{{ old('tanggal_terima', $surat->tanggal_terima ? $surat->tanggal_terima->format('Y-m-d') : '') }}" class="form-control">
+                    </div>
+                </div>
+
+                <div class="section-divider">Status & Lampiran</div>
+                <div class="form-grid" style="margin-bottom:18px;">
+                    <div class="form-group">
+                        <label class="form-label">Status <span class="req">*</span></label>
+                        <select name="status" required class="form-control">
+                            @foreach($statusList as $st)
+                                <option value="{{ $st }}" {{ old('status', $surat->status) === $st ? 'selected' : '' }}>{{ $st }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Upload Dokumen Baru <span class="opt">(biarkan kosong jika tidak diubah)</span></label>
+                        @if($surat->file_path)
+                        <div class="file-info">
+                            <i class="fas fa-paperclip"></i>
+                            <span>{{ basename($surat->file_path) }}</span>
+                            <a href="{{ Storage::url($surat->file_path) }}" target="_blank">Lihat</a>
+                        </div>
+                        @endif
+                        <input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="file-input">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Keterangan <span class="opt">(opsional)</span></label>
+                        <textarea name="keterangan" class="form-control">{{ old('keterangan', $surat->keterangan) }}</textarea>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <a href="{{ route('surat.index') }}" class="btn-cancel"><i class="fas fa-times"></i> Batal</a>
+                    <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</x-app-layout>
