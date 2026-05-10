@@ -22,11 +22,54 @@ class PoinController extends Controller
             }
         }
 
-        // Selected student
-        $selectedNpm = $request->get('npm');
+        $user = auth()->user();
+
+        // ====================================================
+        // TARUNA: auto-load poin miliknya sendiri berdasarkan
+        // username yang cocok dengan nickname di data mahasiswa
+        // ====================================================
+        if ($user->isTaruna()) {
+            $selectedStudent = null;
+            $kelas = null;
+
+            // Cocokkan username user dengan nickname mahasiswa
+            foreach ($flatMahasiswa as $m) {
+                if (strtolower($m['nickname']) === strtolower($user->username ?? '')
+                    || strtolower($m['nickname']) === strtolower($user->nama_panggilan ?? '')
+                    || strtolower($m['npm'] ?? '') === strtolower($user->username ?? ''))
+                {
+                    $selectedStudent = $m;
+                    break;
+                }
+            }
+
+            $riwayat   = collect();
+            $totalPoin = 0;
+
+            if ($selectedStudent) {
+                $riwayat   = PoinMahasiswa::where('npm', $selectedStudent['npm'])
+                    ->orderByDesc('tanggal')
+                    ->orderByDesc('created_at')
+                    ->get();
+                $totalPoin = $riwayat->sum('nilai_efektif');
+            }
+
+            return view('poin.taruna', compact(
+                'allMahasiswa',
+                'flatMahasiswa',
+                'selectedStudent',
+                'riwayat',
+                'totalPoin'
+            ) + ['selectedNpm' => $selectedStudent['npm'] ?? null]);
+        }
+
+        // ====================================================
+        // PENGASUH / PENYELENGGARA: pilih mahasiswa secara bebas
+        // ====================================================
+        $selectedNpm     = $request->get('npm');
         $selectedStudent = null;
-        $riwayat = collect();
-        $totalPoin = 0;
+        $riwayat         = collect();
+        $totalPoin       = 0;
 
         if ($selectedNpm) {
             foreach ($flatMahasiswa as $m) {
@@ -36,7 +79,7 @@ class PoinController extends Controller
                 }
             }
             if ($selectedStudent) {
-                $riwayat = PoinMahasiswa::where('npm', $selectedNpm)
+                $riwayat   = PoinMahasiswa::where('npm', $selectedNpm)
                     ->orderByDesc('tanggal')
                     ->orderByDesc('created_at')
                     ->get();

@@ -177,15 +177,28 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
         <p class="sidebar-section-title">Menu</p>
         <ul class="sidebar-nav">
             <li><a href="{{ route('dashboard') }}" class="active"><i class="fas fa-th-large" style="width:16px;"></i> Dashboard</a></li>
+
+            {{-- Taruna hanya lihat POIN --}}
+            @if(Auth::user()->isTaruna())
+            <li><a href="{{ route('poin.index') }}"><i class="fas fa-star" style="width:16px;"></i> Raport Poin</a></li>
+
+            {{-- Pengasuh & Penyelenggara: menu lengkap --}}
+            @else
             <li><a href="{{ route('surat.index') }}"><i class="fas fa-envelope-open-text" style="width:16px;"></i> Administrasi Surat</a></li>
             <li><a href="{{ route('acara.index') }}"><i class="fas fa-calendar-alt" style="width:16px;"></i> Acara</a></li>
             <li><a href="{{ route('poin.index') }}"><i class="fas fa-star" style="width:16px;"></i> POIN</a></li>
+
+            {{-- Database Mahasiswa: hanya Penyelenggara --}}
+            @if(Auth::user()->canManageSystem())
             <li><a href="{{ route('mahasiswa.index') }}"><i class="fas fa-users" style="width:16px;"></i> Database Mahasiswa</a></li>
+            @endif
+            @endif
         </ul>
 
         <hr class="sidebar-divider">
 
-        <!-- Mahasiswa List -->
+        {{-- Sidebar mahasiswa list: hanya untuk non-taruna --}}
+        @if(!Auth::user()->isTaruna())
         <p class="sidebar-section-title">Mahasiswa</p>
         <div class="mhs-search">
             <i class="fas fa-search"></i>
@@ -210,11 +223,19 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
             @endforeach
         </ul>
         <a href="{{ route('mahasiswa.index') }}" class="view-all-link">Lihat semua {{ $totalMahasiswa }} mahasiswa →</a>
-
         <hr class="sidebar-divider">
+        @endif
+
         <p class="sidebar-section-title">Pengaturan</p>
         <ul class="sidebar-nav">
+            <li><a href="{{ route('profile.edit') }}"><i class="fas fa-user-circle" style="width:16px;"></i> Profil Saya</a></li>
+
+            {{-- Setting & Manajemen Akun: hanya Penyelenggara --}}
+            @if(Auth::user()->canManageSystem())
+            <li><a href="{{ route('users.index') }}"><i class="fas fa-user-shield" style="width:16px;"></i> Manajemen Akun</a></li>
             <li><a href="{{ route('setting.index') }}"><i class="fas fa-cog" style="width:16px;"></i> Setting</a></li>
+            @endif
+
             <li>
                 <a href="{{ route('logout') }}" class="logout-link"
                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -242,21 +263,51 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
             <div class="greeting-badge">
                 <div class="ava">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</div>
                 <div class="username">{{ Auth::user()->name }}</div>
-                <div class="role">Administrator</div>
+                <div class="role">{{ Auth::user()->role_label }}</div>
             </div>
         </div>
 
         <!-- Stat Cards -->
+        @if(Auth::user()->isTaruna())
+        {{-- Taruna: tampilkan info terbatas --}}
+        <div class="stats-grid" style="grid-template-columns: repeat(2,1fr);">
+            <div class="stat-card" style="cursor:default;">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="stat-count" style="font-size:18px;">{{ Auth::user()->name }}</div>
+                <div class="stat-label">Akun Taruna</div>
+                <div class="stat-change neutral"><i class="fas fa-id-badge"></i> {{ Auth::user()->jabatan ?? 'Taruna' }}</div>
+            </div>
+            <a href="{{ route('poin.index') }}" class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b, #38a169);">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-count">Poin</div>
+                <div class="stat-label">Raport Poin Pengasuhan</div>
+                <div class="stat-change up"><i class="fas fa-arrow-right"></i> Lihat raport saya</div>
+            </a>
+        </div>
+        @else
+        {{-- Pengasuh & Penyelenggara: stat lengkap --}}
         <div class="stats-grid">
             <!-- Total Mahasiswa -->
+            @if(Auth::user()->canManageSystem())
             <a href="{{ route('mahasiswa.index') }}" class="stat-card">
+            @else
+            <div class="stat-card" style="cursor:default;">
+            @endif
                 <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="stat-count">{{ $totalMahasiswa }}</div>
                 <div class="stat-label">Total Mahasiswa</div>
                 <div class="stat-change neutral"><i class="fas fa-graduation-cap"></i> Semua kelas</div>
+            @if(Auth::user()->canManageSystem())
             </a>
+            @else
+            </div>
+            @endif
             <!-- Total Acara -->
             <a href="{{ route('acara.index') }}" class="stat-card">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b, #38a169);">
@@ -287,6 +338,8 @@ body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
                 <div class="stat-change up"><i class="fas fa-check-circle"></i> disetujui & selesai</div>
             </a>
         </div>
+        @endif
+
 
         <!-- Acara Mendatang -->
         <div class="section-header">

@@ -356,18 +356,24 @@ tbody tr:hover { background:#fafbff; }
         <a href="{{ route('dashboard') }}" class="sidebar-logo">
             <i class="fas fa-graduation-cap"></i> Pengasuhan
         </a>
-        <p class="sidebar-section-title">Overview</p>
+        <p class="sidebar-section-title">Menu</p>
         <ul class="sidebar-nav">
             <li><a href="{{ route('dashboard') }}"><i class="fas fa-th-large" style="width:16px;"></i> Dashboard</a></li>
             <li><a href="{{ route('surat.index') }}"><i class="fas fa-envelope-open-text" style="width:16px;"></i> Administrasi Surat</a></li>
             <li><a href="{{ route('acara.index') }}"><i class="fas fa-calendar-alt" style="width:16px;"></i> Acara</a></li>
             <li><a href="{{ route('poin.index') }}" class="active"><i class="fas fa-star" style="width:16px;"></i> POIN</a></li>
+            @if(Auth::user()->canManageSystem())
             <li><a href="{{ route('mahasiswa.index') }}"><i class="fas fa-users" style="width:16px;"></i> Database Mahasiswa</a></li>
+            @endif
         </ul>
         <hr class="sidebar-divider">
         <p class="sidebar-section-title">Pengaturan</p>
         <ul class="sidebar-nav">
-            <li><a href="#"><i class="fas fa-cog" style="width:16px;"></i> Setting</a></li>
+            <li><a href="{{ route('profile.edit') }}"><i class="fas fa-user-circle" style="width:16px;"></i> Profil Saya</a></li>
+            @if(Auth::user()->canManageSystem())
+            <li><a href="{{ route('users.index') }}"><i class="fas fa-user-shield" style="width:16px;"></i> Manajemen Akun</a></li>
+            <li><a href="{{ route('setting.index') }}"><i class="fas fa-cog" style="width:16px;"></i> Setting</a></li>
+            @endif
             <li>
                 <a href="{{ route('logout') }}" class="logout-link"
                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -385,7 +391,7 @@ tbody tr:hover { background:#fafbff; }
             <div class="page-header-inner">
                 <div>
                     <h1><i class="fas fa-star"></i> POIN Pengasuhan</h1>
-                    <p>Kelola poin pengasuhan mahasiswa — Prestasi & Pelanggaran</p>
+                    <p>Kelola poin pengasuhan mahasiswa &mdash; Prestasi &amp; Pelanggaran</p>
                 </div>
                 @if($selectedStudent)
                 <div class="poin-badge-header">
@@ -405,6 +411,102 @@ tbody tr:hover { background:#fafbff; }
         <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> {{ $errors->first() }}</div>
         @endif
 
+        @if(Auth::user()->isTaruna())
+        {{-- ===== TAMPILAN KHUSUS TARUNA: hanya riwayat, tanpa form ===== --}}
+        @if(!$selectedStudent)
+        <div class="card" style="padding:48px; text-align:center; color:#bbb;">
+            <i class="fas fa-user-graduate" style="font-size:42px; margin-bottom:14px; display:block; color:#e8ebf5;"></i>
+            <p style="font-size:14px; margin:0;">Data poin kamu tidak ditemukan.<br>Hubungi Pengasuh untuk verifikasi akun.</p>
+        </div>
+        @else
+        {{-- Ringkasan Poin --}}
+        <div class="card" style="margin-bottom:18px;">
+            <div class="card-header">
+                <div class="icon icon-green"><i class="fas fa-chart-bar"></i></div>
+                <h3>Ringkasan Poin — {{ $selectedStudent['nama'] }}</h3>
+                <span style="margin-left:auto; background:#eef0ff; color:#667eea; font-size:11px; font-weight:700; padding:3px 10px; border-radius:50px;">
+                    Kelas {{ $selectedStudent['kelas'] }}
+                </span>
+            </div>
+            <div class="card-body" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+                @php
+                    $totalPrestasi    = $riwayat->where('kategori','prestasi')->sum('nilai');
+                    $totalPelanggaran = $riwayat->where('kategori','pelanggaran')->sum('nilai');
+                @endphp
+                <div style="background:#e6f9f0; border-radius:12px; padding:18px; text-align:center;">
+                    <div style="font-size:28px; font-weight:800; color:#38a169;">+{{ $totalPrestasi }}</div>
+                    <div style="font-size:12px; color:#38a169; font-weight:600; margin-top:4px;"><i class="fas fa-trophy"></i> Prestasi</div>
+                </div>
+                <div style="background:#fff5f5; border-radius:12px; padding:18px; text-align:center;">
+                    <div style="font-size:28px; font-weight:800; color:#e53e3e;">-{{ $totalPelanggaran }}</div>
+                    <div style="font-size:12px; color:#e53e3e; font-weight:600; margin-top:4px;"><i class="fas fa-exclamation-triangle"></i> Pelanggaran</div>
+                </div>
+                <div style="background:{{ $totalPoin >= 0 ? '#e6f9f0' : '#fff5f5' }}; border-radius:12px; padding:18px; text-align:center;">
+                    <div style="font-size:28px; font-weight:800; color:{{ $totalPoin >= 0 ? '#38a169' : '#e53e3e' }};">
+                        {{ $totalPoin >= 0 ? '+' : '' }}{{ $totalPoin }}
+                    </div>
+                    <div style="font-size:12px; color:#888; font-weight:600; margin-top:4px;"><i class="fas fa-star"></i> Total</div>
+                </div>
+            </div>
+        </div>
+        {{-- Tabel Riwayat (read-only, tanpa tombol hapus) --}}
+        <div class="card">
+            <div class="card-header">
+                <div class="icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);"><i class="fas fa-history"></i></div>
+                <h3>Riwayat Poin Saya</h3>
+                <span style="margin-left:auto; background:#fdf0ff; color:#c026d3; font-size:12px; font-weight:700; padding:3px 10px; border-radius:50px;">
+                    {{ $riwayat->count() }} entri
+                </span>
+            </div>
+            @if($riwayat->isEmpty())
+            <div class="riwayat-empty">
+                <i class="fas fa-inbox" style="color:#e8ebf5;"></i>
+                <p>Belum ada data poin untukmu.</p>
+            </div>
+            @else
+            <div class="table-wrapper" style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Kategori</th>
+                            <th>Kegiatan</th>
+                            <th>Poin</th>
+                            <th>Pengasuh</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($riwayat as $r)
+                        <tr>
+                            <td style="white-space:nowrap; font-size:12px; color:#888;">{{ $r->tanggal->format('d M Y') }}</td>
+                            <td>
+                                @if($r->kategori === 'prestasi')
+                                <span class="badge-prestasi"><i class="fas fa-trophy"></i> Prestasi</span>
+                                @else
+                                <span class="badge-pelanggaran"><i class="fas fa-exclamation-triangle"></i> Pelanggaran</span>
+                                @endif
+                            </td>
+                            <td style="max-width:180px; font-weight:500;">{{ $r->kegiatan }}</td>
+                            <td>
+                                @if($r->kategori === 'prestasi')
+                                <span class="poin-positif">+{{ $r->nilai }}</span>
+                                @else
+                                <span class="poin-negatif">-{{ $r->nilai }}</span>
+                                @endif
+                            </td>
+                            <td style="font-size:12px; color:#666;">{{ $r->pengasuh }}</td>
+                            <td style="font-size:12px; color:#888;">{{ $r->keterangan ?? '-' }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
+        </div>
+        @endif
+        @else
+        {{-- ===== TAMPILAN PENGASUH / PENYELENGGARA: form + riwayat lengkap ===== --}}
         <div class="two-col">
             <!-- LEFT: Pilih Mahasiswa + Form -->
             <div>
@@ -661,80 +763,43 @@ tbody tr:hover { background:#fafbff; }
 <script>
 // === KATEGORI TOGGLE ===
 let currentKategori = '{{ old("kategori", "prestasi") }}';
-
 function setKategori(k) {
     currentKategori = k;
     document.getElementById('kategoriInput').value = k;
-
     const btnP = document.getElementById('btnPrestasi');
     const btnV = document.getElementById('btnPelanggaran');
     const prefix = document.getElementById('nilaiPrefix');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
-
     if (k === 'prestasi') {
-        btnP.className = 'kat-btn prestasi-active';
-        btnV.className = 'kat-btn';
-        prefix.textContent = '+';
-        prefix.className = 'nilai-prefix positif';
+        btnP.className = 'kat-btn prestasi-active'; btnV.className = 'kat-btn';
+        prefix.textContent = '+'; prefix.className = 'nilai-prefix positif';
         submitBtn.className = 'btn-submit prestasi';
         submitText.textContent = 'Tambah Poin Prestasi';
     } else {
-        btnV.className = 'kat-btn pelanggaran-active';
-        btnP.className = 'kat-btn';
-        prefix.textContent = '-';
-        prefix.className = 'nilai-prefix negatif';
+        btnV.className = 'kat-btn pelanggaran-active'; btnP.className = 'kat-btn';
+        prefix.textContent = '-'; prefix.className = 'nilai-prefix negatif';
         submitBtn.className = 'btn-submit pelanggaran';
         submitText.textContent = 'Kurangi Poin (Pelanggaran)';
     }
 }
-
-// Init on load
-document.addEventListener('DOMContentLoaded', function() {
-    setKategori(currentKategori);
-});
-
-// === STUDENT DROPDOWN ===
-function openDropdown() {
-    document.getElementById('studentDropdown').classList.add('open');
-}
-function closeDropdown() {
-    setTimeout(() => {
-        document.getElementById('studentDropdown').classList.remove('open');
-    }, 200);
-}
+document.addEventListener('DOMContentLoaded', function() { setKategori(currentKategori); });
+function openDropdown() { document.getElementById('studentDropdown').classList.add('open'); }
+function closeDropdown() { setTimeout(() => document.getElementById('studentDropdown').classList.remove('open'), 200); }
 function filterStudents() {
     const q = document.getElementById('studentSearch').value.toLowerCase();
-    const items = document.querySelectorAll('.dropdown-item');
-    const groups = document.querySelectorAll('.dropdown-group-label');
-
-    items.forEach(item => {
-        const nama = item.dataset.nama || '';
-        const nick = item.dataset.nick || '';
-        const npm  = item.dataset.npm || '';
-        item.style.display = (nama.includes(q) || nick.includes(q) || npm.includes(q)) ? '' : 'none';
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.style.display = (item.dataset.nama||'').includes(q)||(item.dataset.nick||'').includes(q)||(item.dataset.npm||'').includes(q) ? '' : 'none';
     });
-
-    // Hide group labels with no visible items
-    groups.forEach(g => {
-        let next = g.nextElementSibling;
-        let hasVisible = false;
-        while (next && !next.classList.contains('dropdown-group-label')) {
-            if (next.style.display !== 'none') hasVisible = true;
-            next = next.nextElementSibling;
-        }
-        g.style.display = hasVisible ? '' : 'none';
+    document.querySelectorAll('.dropdown-group-label').forEach(g => {
+        let next = g.nextElementSibling, has = false;
+        while (next && !next.classList.contains('dropdown-group-label')) { if (next.style.display!=='none') has=true; next=next.nextElementSibling; }
+        g.style.display = has ? '' : 'none';
     });
-
     openDropdown();
 }
-function selectStudent(npm) {
-    window.location.href = '{{ route("poin.index") }}?npm=' + npm;
-}
-function showSearch() {
-    document.getElementById('searchWrap').style.display = 'block';
-    setTimeout(() => document.getElementById('studentSearch').focus(), 50);
-}
+function selectStudent(npm) { window.location.href='{{ route("poin.index") }}?npm='+npm; }
+function showSearch() { document.getElementById('searchWrap').style.display='block'; setTimeout(()=>document.getElementById('studentSearch').focus(),50); }
 </script>
 
 {{-- Modal Konfirmasi Hapus Poin --}}
@@ -745,19 +810,13 @@ function showSearch() {
         <p id="poinModalName" style="font-weight:600; color:#333; margin-bottom:6px;"></p>
         <p>Entri poin ini akan dihapus secara permanen.</p>
         <div class="modal-actions">
-            <button class="modal-cancel" onclick="closePoinDeleteModal()">
-                <i class="fas fa-times"></i> Batal
-            </button>
-            <button class="modal-confirm" onclick="submitPoinDeleteForm()">
-                <i class="fas fa-trash"></i> Ya, Hapus
-            </button>
+            <button class="modal-cancel" onclick="closePoinDeleteModal()"><i class="fas fa-times"></i> Batal</button>
+            <button class="modal-confirm" onclick="submitPoinDeleteForm()"><i class="fas fa-trash"></i> Ya, Hapus</button>
         </div>
     </div>
 </div>
-
 <script>
 let poinTargetFormId = null;
-
 function showPoinDeleteModal(formId, kegiatan) {
     poinTargetFormId = formId;
     document.getElementById('poinModalName').textContent = kegiatan;
@@ -768,15 +827,9 @@ function closePoinDeleteModal() {
     poinTargetFormId = null;
 }
 function submitPoinDeleteForm() {
-    if (poinTargetFormId) {
-        document.getElementById(poinTargetFormId).submit();
-    }
+    if (poinTargetFormId) document.getElementById(poinTargetFormId).submit();
 }
-document.getElementById('poinDeleteModal').addEventListener('click', function(e) {
-    if (e.target === this) closePoinDeleteModal();
-});
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closePoinDeleteModal();
-});
+document.getElementById('poinDeleteModal').addEventListener('click', function(e) { if (e.target===this) closePoinDeleteModal(); });
+document.addEventListener('keydown', function(e) { if (e.key==='Escape') closePoinDeleteModal(); });
 </script>
 </x-app-layout>

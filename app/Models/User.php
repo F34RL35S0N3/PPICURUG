@@ -12,6 +12,11 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    // Konstanta role
+    const ROLE_TARUNA        = 'taruna';
+    const ROLE_PENGASUH      = 'pengasuh';
+    const ROLE_PENYELENGGARA = 'penyelenggara';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -26,6 +31,7 @@ class User extends Authenticatable
         'no_telepon',
         'jabatan',
         'foto',
+        'role',
     ];
 
     /**
@@ -45,6 +51,68 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password'          => 'hashed',
     ];
+
+    // =====================
+    // Role Helper Methods
+    // =====================
+
+    public function isTaruna(): bool
+    {
+        return $this->role === self::ROLE_TARUNA;
+    }
+
+    public function isPengasuh(): bool
+    {
+        return $this->role === self::ROLE_PENGASUH;
+    }
+
+    public function isPenyelenggara(): bool
+    {
+        return $this->role === self::ROLE_PENYELENGGARA;
+    }
+
+    /**
+     * Cek apakah user punya izin edit (pengasuh atau penyelenggara)
+     */
+    public function canEdit(): bool
+    {
+        return in_array($this->role, [self::ROLE_PENGASUH, self::ROLE_PENYELENGGARA]);
+    }
+
+    /**
+     * Cek apakah user bisa mengatur akun taruna dan setting sistem
+     */
+    public function canManageSystem(): bool
+    {
+        return $this->role === self::ROLE_PENYELENGGARA;
+    }
+
+    /**
+     * Label tampilan role
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        return match($this->role) {
+            self::ROLE_TARUNA        => 'Taruna',
+            self::ROLE_PENGASUH      => 'Pengasuh',
+            self::ROLE_PENYELENGGARA => 'Penyelenggara',
+            default                  => ucfirst($this->role),
+        };
+    }
+
+    /**
+     * Badge color untuk role
+     */
+    public function getRoleBadgeColorAttribute(): string
+    {
+        return match($this->role) {
+            self::ROLE_TARUNA        => '#38a169', // green
+            self::ROLE_PENGASUH      => '#3182ce', // blue
+            self::ROLE_PENYELENGGARA => '#764ba2', // purple
+            default                  => '#888',
+        };
+    }
 }
+
